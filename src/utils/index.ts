@@ -30,9 +30,11 @@ export function createTriggerBlock(element: Element) {
 }
 
 /** */
-export function openListInFloating() {
+export function openListInFloating(element: Element) {
     // 在悬浮窗打开折叠的列表
-
+    let previewID = element.parentElement.getAttribute('data-node-id');
+    let previewElement = document.querySelector(`.block__popover .protyle-wysiwyg [data-node-id="${previewID}"]`);
+    previewElement.setAttribute('fold', '0');
 }
 
 /**
