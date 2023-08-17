@@ -27,7 +27,10 @@ export function createTriggerBlock(element: Element) {
     return triggerBlock;
 }
 
-/** */
+/**
+ * 展开折叠列表
+ * @param element   折叠列表元素，使用 querySelectorAll 获取
+ */
 export function openListInFloating(element: Element) {
     // 在悬浮窗打开折叠的列表
     let previewID = element.parentElement.getAttribute('data-node-id');
