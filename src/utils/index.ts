@@ -6,8 +6,10 @@
 export function createTriggerBlock(element: Element) {
     // 创建触发块
     let parentElement = element.parentElement;
-    let triggerBlock = insertElement(parentElement, 'div');
     let previewID = parentElement.getAttribute('data-node-id');
+    let triggerBlock = parentElement.lastElementChild.id === `preview-${previewID}`
+        ? parentElement.lastElementChild
+        : insertElement(parentElement, 'div', `preview-${previewID}`);
     
     // 触发块内创建思源超链接
     triggerBlock.innerHTML = `<span data-type='a' class='list-A' data-href=siyuan://blocks/${previewID}>####</span>`
@@ -19,13 +21,9 @@ export function createTriggerBlock(element: Element) {
     let top = locationBlock.offsetTop;
     locationBlock.remove();
 
-    triggerBlock.style.display = 'flex';
-    triggerBlock.style.position = 'absolute';
-    triggerBlock.style.top = top + 'px';
-    // .protyle-action 图标宽度: 34 px, 折叠样式 margin-left: 9 px
-    triggerBlock.style.left = (left + 43) + 'px';  
-    triggerBlock.style.opacity = '0';   // 默认隐藏超链接
-
+    // `left: 43px` 说明：.protyle-action 图标宽度: 34 px, 折叠样式 margin-left: 9 px
+    triggerBlock.setAttribute('style', `display: flex; position: absolute; top: ${top}px; left: ${left + 43}px; opacity: 0`)
+    
     return triggerBlock;
 }
 
@@ -34,7 +32,9 @@ export function openListInFloating(element: Element) {
     // 在悬浮窗打开折叠的列表
     let previewID = element.parentElement.getAttribute('data-node-id');
     let previewElement = document.querySelector(`.block__popover .protyle-wysiwyg [data-node-id="${previewID}"]`);
-    previewElement.setAttribute('fold', '0');
+    let isFold = previewElement.getAttribute('fold');
+
+    if (isFold === '1') previewElement.setAttribute('fold', '0');
 }
 
 /**
