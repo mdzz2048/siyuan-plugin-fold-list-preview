@@ -23,6 +23,9 @@ export function createTriggerBlock(element: Element) {
 
     // `left: 43px` 说明：.protyle-action 图标宽度: 34 px, 折叠样式 margin-left: 9 px
     triggerBlock.setAttribute('style', `display: flex; position: absolute; top: ${top}px; left: ${left + 43}px; opacity: 0`)
+    // 设置标记属性，用于后续检查折叠状态
+    triggerBlock.setAttribute('triggerBlock', 'true')
+    parentElement.setAttribute('previewList', 'true');
     
     return triggerBlock;
 }
@@ -34,9 +37,17 @@ export function createTriggerBlock(element: Element) {
 export function openListInFloating(element: Element) {
     // 在悬浮窗打开折叠的列表
     let previewID = element.parentElement.getAttribute('data-node-id');
-    let previewElement = document.querySelector(`.block__popover .protyle-wysiwyg [data-node-id="${previewID}"]`);
-    let isFold = previewElement.getAttribute('fold');
+    let floatingWindows = document.querySelectorAll('.block__popover');
+    
+    // 获取最后打开的悬浮窗 (data-level 最大值)
+    let floatingArray = Array.from(floatingWindows);
+    let dataLevels = floatingArray.map(node => parseInt(node.getAttribute('data-level')));
+    let maxIndex = dataLevels.indexOf(Math.max(...dataLevels));
+    let maxLevel = dataLevels[maxIndex];
 
+    let previewElement = document.querySelector(`.block__popover[data-level="${maxLevel}"] .protyle-wysiwyg [data-node-id="${previewID}"]`);
+    let isFold = previewElement.getAttribute('fold');
+    
     if (isFold === '1') previewElement.setAttribute('fold', '0');
 }
 
@@ -46,10 +57,10 @@ export function openListInFloating(element: Element) {
  * @param type      需要监听的事件
  * @param fun       回调函数
  */
-export function addEvent(element: HTMLElement, type: string, fun: EventListenerObject) {
+export function addEvent(element: Element, type: string, fun: EventListener) {
     if (element.addEventListener) {
         //判断浏览器有没有addEventListener方法
-        element.addEventListener(type, fun, false);
+        element.addEventListener(type, fun);
     } else if (element['attachEvent']) {
         //判断浏览器有没 有attachEvent IE8的方法	
         element['attachEvent']("on" + type, fun);
@@ -65,10 +76,10 @@ export function addEvent(element: HTMLElement, type: string, fun: EventListenerO
  * @param type      注册事件名(不加on 如"click")
  * @param fun       回调函数
  */
-export function removeEvent(element: HTMLElement, type: string, fun: EventListenerObject) {
+export function removeEvent(element: Element, type: string, fun: EventListener) {
     if (element['addEventListener']) {
         // 判断浏览器有没有addEventListener方法(addEventListener 方法专用删除方法)
-        element.removeEventListener(type, fun, false);
+        element.removeEventListener(type, fun);
     } else if (element['attachEvent']) {
         // 判断浏览器有没有attachEvent IE8的方法(attachEvent 方法专用删除事件方法)
         element['detachEvent']("on" + type, fun);
