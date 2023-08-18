@@ -32,11 +32,11 @@ export default defineConfig({
                     dest: "./",
                 },
                 {
-                    src: "./icon.png",
+                    src: "./asset/icon.png",
                     dest: "./",
                 },
                 {
-                    src: "./preview.png",
+                    src: "./asset/preview.png",
                     dest: "./",
                 },
                 {
