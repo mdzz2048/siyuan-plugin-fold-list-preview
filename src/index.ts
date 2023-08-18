@@ -60,7 +60,6 @@ export default class PluginSample extends Plugin {
                 for (let index = 0; index < childElements.length; index++) {
                     let childElement = childElements[index];
                     if (childElement.hasAttribute('triggerBlock')) {
-                        console.log(childElement);
                         childElement.remove();
                     }
                 }
