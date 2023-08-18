@@ -2,7 +2,7 @@
   "name": "siyuan-plugin-fold-list-preview",
   "author": "mdzz2048",
   "url": "https://github.com/mdzz2048/siyuan-plugin-fold-list-preview",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "minAppVersion": "2.9.8",
   "backends": ["all"],
   "frontends": ["all"],
