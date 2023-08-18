@@ -1,6 +1,6 @@
-该插件为折叠列表添加预览功能。
+The plug-in adds a preview function to the collapsed list.
 
-1. 在代码片段加入以下代码，添加列表折叠增强样式
+1. Add the following code in the code snippet to add the list collapse enhancement style
 
   ```css
   .protyle-wysiwyg [data-node-id].li[fold="1"]>.h1>[spellcheck]:not(.fn__flex-1.history__text.protyle  [data-node-id].li[fold="1"]>.h1>[spellcheck])::after,
@@ -24,9 +24,11 @@
   }
   ```
 
-2. 开启本插件，将鼠标移动至列表增强样式处，插件会自动打开悬浮窗以预览折叠列表内容
+2. Open the plug-in, move the mouse to the list enhancement style, the plug-in will automatically open the hover window to preview the collapsed list content
 
-触发机制：
+Trigger mechanism:
 
-1. 后台自动触发，大约 5s 一次
-2. 点击编辑器触发
+1. Background auto-trigger, about 5s once
+2. Click the editor trigger
+
+Reference has been removed theme [HBuilderX-Light](https://github.com/UFDXD/HBuilderX-Light) production

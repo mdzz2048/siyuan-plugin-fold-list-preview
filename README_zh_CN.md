@@ -30,3 +30,5 @@
 
 1. 后台自动触发，大约 5s 一次
 2. 点击编辑器触发
+
+参考已下架主题 [HBuilderX-Light](https://github.com/UFDXD/HBuilderX-Light) 制作
