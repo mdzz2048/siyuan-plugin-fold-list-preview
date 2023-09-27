@@ -12,7 +12,7 @@ export function createTriggerBlock(element: Element) {
         : insertElement(parentElement, 'div', `preview-${previewID}`);
     
     // 触发块内创建思源超链接
-    triggerBlock.innerHTML = `<span data-type='a' class='list-A' data-href=siyuan://blocks/${previewID}>####</span>`
+    triggerBlock.innerHTML = `<span data-type='a' class='list-A' data-href=siyuan://blocks/${previewID}>##</span>`
     
     // 触发块定位: 显示在 (· · ·) 位置
     let childElement = element.firstElementChild;
@@ -21,8 +21,8 @@ export function createTriggerBlock(element: Element) {
     let top = locationBlock.offsetTop;
     locationBlock.remove();
 
-    // `left: 43px` 说明：.protyle-action 图标宽度: 34 px, 折叠样式 margin-left: 9 px
-    triggerBlock.setAttribute('style', `display: flex; position: absolute; top: ${top}px; left: ${left + 43}px; opacity: 0`)
+    // `left: 39px` 说明：.protyle-action 图标宽度: 34 px, 折叠样式 margin-left: 5 px
+    triggerBlock.setAttribute('style', `display: flex; position: absolute; top: ${top}px; left: ${left + 39}px; opacity: 0`)
     // 设置标记属性，用于后续检查折叠状态
     triggerBlock.setAttribute('triggerBlock', 'true')
     parentElement.setAttribute('previewList', 'true');

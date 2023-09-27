@@ -1,0 +1,8 @@
+.protyle-wysiwyg [data-node-id].li[fold="1"]>.p>[spellcheck]:not(.fn__flex-1.history__text.protyle  [data-node-id].li[fold="1"]>.p>[spellcheck])::after {
+    content: "  · · ·  ";
+    display: inline;
+    font-size: 65%;
+    border: 1px solid rgb(95, 99, 104);
+    margin-left: 5px;
+    border-radius: 5px;
+}
