@@ -5,4 +5,19 @@
     border: 1px solid rgb(95, 99, 104);
     margin-left: 5px;
     border-radius: 5px;
+    vertical-align: middle;
+}
+
+.protyle-wysiwyg [data-node-id] > [trigger-block] {
+    display: flex !important;
+    position: absolute;
+    opacity: 0;
+    line-height: 1;
+}
+.protyle-wysiwyg [data-node-id] > [trigger-block]::after {
+    content: "  · · ·  ";
+    margin-left: 5px;
+}
+.protyle-wysiwyg [data-node-id]> [trigger-block]:hover {
+    cursor: pointer;
 }
