@@ -1,4 +1,57 @@
 /**
+ * 获取所有折叠列表元素，用于创建触发块
+ * @returns 折叠列表集合
+ */
+export function getFoldList(): NodeListOf<Element> {
+    const FOLD_LIST_SELECTOR = '.protyle-wysiwyg [data-node-id].li[fold="1"] > .p';
+    return document.querySelectorAll(FOLD_LIST_SELECTOR);
+}
+
+/**
+ * 获取所有被标记的列表块，用于在悬浮窗预览
+ * @returns 列表块集合
+ */
+export function getPreviewList(): NodeListOf<Element> {
+    const PREVIEW_LIST_SELECTOR = '.protyle-wysiwyg [data-node-id][preview-list]';
+    return document.querySelectorAll(PREVIEW_LIST_SELECTOR);
+}
+
+type FloatLayerInfo = {
+    floatLayers: Element[], 
+    maxDataLevel?: number, 
+    dataOids?: string[],
+    lastDataOid?: string, 
+    lastFloatLayer?: Element, 
+}
+/**
+ * 获取悬浮窗信息
+ * @returns FloatLayerInfo
+ */
+export function getFloatLayerInfo(): FloatLayerInfo {
+    const floatLayers = Array.from(document.querySelectorAll('.block__popover'));
+    const dataOids = floatLayers.map(node => node.getAttribute('data-oid'));
+    // const dataLevels = floatingArray.map(node => parseInt(node.getAttribute('data-level')));
+    // const maxIndex = dataLevels.indexOf(Math.max(...dataLevels));
+    // const lastLevel = dataLevels[maxIndex];
+    // const lastDataOid = dataOids[maxIndex];
+    let floatLayerInfo: FloatLayerInfo = {
+        floatLayers: floatLayers, 
+        maxDataLevel: 0, 
+        dataOids: dataOids, 
+        lastDataOid: null, 
+        lastFloatLayer: null, 
+    }
+    if (floatLayers.length > 0) {
+        // 在 2.10.7 快速触发两个浮窗时，data-level 可能会重复
+        const lastFloatLayer = floatLayers[floatLayers.length - 1];
+        floatLayerInfo.lastFloatLayer = lastFloatLayer;
+        floatLayerInfo.lastDataOid = lastFloatLayer.getAttribute('data-oid');
+        floatLayerInfo.maxDataLevel = parseInt(lastFloatLayer.getAttribute('data-level'));
+    }
+    return floatLayerInfo;
+}
+
+/**
  * 给指定折叠列表元素创建一个用于触发悬浮窗口的触发块
  * @param element   折叠列表元素，使用 querySelectorAll 获取
  * @returns         触发块
@@ -9,25 +62,41 @@ export function createTriggerBlock(element: Element) {
     let previewID = parentElement.getAttribute('data-node-id');
     let triggerBlock = parentElement.lastElementChild.id === `preview-${previewID}`
         ? parentElement.lastElementChild
-        : insertElement(parentElement, 'div', `preview-${previewID}`);
-    
-    // 触发块内创建思源超链接
-    triggerBlock.innerHTML = `<span data-type='a' class='list-A' data-href=siyuan://blocks/${previewID}>####</span>`
-    
+        : insertElement(parentElement, 'span', `preview-${previewID}`);
     // 触发块定位: 显示在 (· · ·) 位置
     let childElement = element.firstElementChild;
     let locationBlock = insertElement(childElement, 'span');
     let left = locationBlock.offsetLeft;
     let top = locationBlock.offsetTop;
     locationBlock.remove();
-
-    // `left: 43px` 说明：.protyle-action 图标宽度: 34 px, 折叠样式 margin-left: 9 px
-    triggerBlock.setAttribute('style', `display: flex; position: absolute; top: ${top}px; left: ${left + 43}px; opacity: 0`)
+    
+    // `left: 39px` 说明：.protyle-action 图标宽度: 34 px, 折叠样式 margin-left: 5 px
+    triggerBlock.setAttribute('style', `top: ${top}px; left: ${left + 39}px;`)
     // 设置标记属性，用于后续检查折叠状态
-    triggerBlock.setAttribute('triggerBlock', 'true')
-    parentElement.setAttribute('previewList', 'true');
+    triggerBlock.setAttribute('trigger-block', 'true')
+    parentElement.setAttribute('preview-list', 'true');
     
     return triggerBlock;
+}
+
+/**
+ * 移除预览标记/触发块
+ * @param element   标记的列表块
+ * @param removeAll 移除触发块
+ */
+export function removeTriggerBlock(element: Element, removeAll: boolean) {
+    // 清除标记属性
+    element.removeAttribute('preview-list');
+    // 清除触发块
+    if (removeAll) {
+        const childElements = element.children;
+        for (let index = 0; index < childElements.length; index++) {
+            let childElement = childElements[index];
+            if (childElement.hasAttribute('trigger-block')) {
+                childElement.remove();
+            }
+        }
+    }
 }
 
 /**
@@ -35,20 +104,17 @@ export function createTriggerBlock(element: Element) {
  * @param element   折叠列表元素，使用 querySelectorAll 获取
  */
 export function openListInFloating(element: Element) {
-    // 在悬浮窗打开折叠的列表
-    let previewID = element.parentElement.getAttribute('data-node-id');
-    let floatingWindows = document.querySelectorAll('.block__popover');
-    
     // 获取最后打开的悬浮窗 (data-level 最大值)
-    let floatingArray = Array.from(floatingWindows);
-    let dataLevels = floatingArray.map(node => parseInt(node.getAttribute('data-level')));
-    let maxIndex = dataLevels.indexOf(Math.max(...dataLevels));
-    let maxLevel = dataLevels[maxIndex];
-
-    let previewElement = document.querySelector(`.block__popover[data-level="${maxLevel}"] .protyle-wysiwyg [data-node-id="${previewID}"]`);
-    let isFold = previewElement.getAttribute('fold');
-    
-    if (isFold === '1') previewElement.setAttribute('fold', '0');
+    const floatLayerInfo = getFloatLayerInfo();
+    const previewID = element.parentElement.getAttribute('data-node-id');
+    const previewElement = floatLayerInfo.lastFloatLayer.querySelector(`[data-node-id="${previewID}"]`);
+    if (previewElement != null) {
+        const isFold = previewElement.getAttribute('fold');
+        if (isFold === '1') previewElement.setAttribute('fold', '0');
+    } else {
+        // console.log(floatLayerInfo);
+        // console.log(previewID);
+    }
 }
 
 /**
@@ -60,7 +126,10 @@ export function openListInFloating(element: Element) {
 export function addEvent(element: Element, type: string, fun: EventListener) {
     if (element.addEventListener) {
         //判断浏览器有没有addEventListener方法
-        element.addEventListener(type, fun);
+        const options: AddEventListenerOptions = {
+            passive: true
+        }
+        element.addEventListener(type, fun, options);
     } else if (element['attachEvent']) {
         //判断浏览器有没 有attachEvent IE8的方法	
         element['attachEvent']("on" + type, fun);

@@ -1,0 +1,23 @@
+.protyle-wysiwyg [data-node-id].li[fold="1"]>.p>[spellcheck]:not(.fn__flex-1.history__text.protyle  [data-node-id].li[fold="1"]>.p>[spellcheck])::after {
+    content: "  · · ·  ";
+    display: inline;
+    font-size: 65%;
+    border: 1px solid rgb(95, 99, 104);
+    margin-left: 5px;
+    border-radius: 5px;
+    vertical-align: middle;
+}
+
+.protyle-wysiwyg [data-node-id] > [trigger-block] {
+    display: flex !important;
+    position: absolute;
+    opacity: 0;
+    line-height: 1;
+}
+.protyle-wysiwyg [data-node-id] > [trigger-block]::after {
+    content: "  · · ·  ";
+    margin-left: 5px;
+}
+.protyle-wysiwyg [data-node-id]> [trigger-block]:hover {
+    cursor: pointer;
+}

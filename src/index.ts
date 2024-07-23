@@ -1,32 +1,27 @@
-import {
-    Plugin,
-    App,
-    I18N
-} from "siyuan";
+import { Plugin } from "siyuan";
 import { 
     addEvent, 
     removeEvent, 
     createTriggerBlock, 
-    openListInFloating
+    getFloatLayerInfo,
+    openListInFloating,
+    getFoldList,
+    getPreviewList,
+    removeTriggerBlock
 } from "./utils";
 
 const STORAGE_NAME = "menu-config";
 
 export default class PluginSample extends Plugin {
-    constructor(app: App, name: string, i18n: I18N) {
-        super({
-            app: app,
-            name: name,
-            i18n: i18n
-        });
-        this.listener = this.listener.bind(this);
-    }
+
+    Listener = this.listener.bind(this);
 
     async onload() {
-        this.eventBus.on('ws-main', (event) => {
-            if (event.detail['cmd'] === 'backgroundtask') {
-                this.addListHoverListener();
-            }
+        this.eventBus.once('loaded-protyle', () => {
+            this.addListHoverListener();
+        })
+        this.eventBus.on('loaded-protyle-dynamic', () => {
+            this.addListHoverListener();
         })
         this.eventBus.on('click-editorcontent', () => {
             this.addListHoverListener();
@@ -38,51 +33,75 @@ export default class PluginSample extends Plugin {
     }
     
     onunload() {
+        this.eventBus.once('loaded-protyle', () => {
+            this.removeListHoverListener();
+        })
+        this.eventBus.on('loaded-protyle-dynamic', () => {
+            this.removeListHoverListener();
+        })
+        this.eventBus.on('click-editorcontent', () => {
+            this.removeListHoverListener();
+        })
         console.log(this.i18n.byePlugin);
     }
     
     addListHoverListener() {
-        const FOLD_LIST_SELECTOR = '.protyle-wysiwyg [data-node-id].li[fold="1"] > .p';
-        const PREVIEW_LIST_SELECTOR = '.protyle-wysiwyg [data-node-id][previewList]';
-        let foldLists = document.querySelectorAll(FOLD_LIST_SELECTOR);
-        let previewList = document.querySelectorAll(PREVIEW_LIST_SELECTOR);
+        const foldLists = getFoldList();
+        const previewLists = getPreviewList();
         
-        // 检查列表是否恢复未折叠状态，若恢复，则清除事件和触发块
-        for (let index = 0; index < previewList.length; index++) {
-            let element = previewList[index];
-            let isFold = element.getAttribute('fold');
-            let childElements = element.children;
+        // 更新触发块: 列表展开后，清除事件和触发块
+        previewLists.forEach((element) => {
+            const isFold = element.getAttribute('fold');
+            removeTriggerBlock(element, isFold === null || isFold === '0');
+        })
+        // 注册监听事件
+        foldLists.forEach((element) => {
+            const triggerBlock = createTriggerBlock(element);
+            addEvent(triggerBlock, 'mouseenter', this.Listener);
+            addEvent(triggerBlock, 'click', this.Listener);
+        })
+    }
 
-            if (isFold === null || isFold === '0') {
-                // 清除标记属性
-                element.removeAttribute('previewList');
-                // 清除触发块
-                for (let index = 0; index < childElements.length; index++) {
-                    let childElement = childElements[index];
-                    if (childElement.hasAttribute('triggerBlock')) {
-                        childElement.remove();
-                    }
-                }
-            }
-        }
+    removeListHoverListener() {
+        const foldLists = getFoldList();
+        const previewLists = getPreviewList();
         
-        for (let index = 0; index < foldLists.length; index++) {
-            let element = foldLists[index];
-            // 给每个列表创建一个触发块
-            let triggerBlock = createTriggerBlock(element);
-            // 重新注册鼠标悬浮事件
-            removeEvent(triggerBlock, 'mouseenter', this.listener);
-            addEvent(triggerBlock, 'mouseenter', this.listener);
+        // 移除所有触发块
+        previewLists.forEach((element) => {
+            removeTriggerBlock(element, true);
+        })
+        // 移除所有监听事件
+        foldLists.forEach((element) => {
+            const triggerBlock = createTriggerBlock(element);
+            removeEvent(triggerBlock, 'mouseenter', this.Listener);
+            removeEvent(triggerBlock, 'click', this.Listener);
+        })
+    }
+
+    listener(event: MouseEvent) {
+        let element = event.target as Element;
+        // 加载 protyle 窗口不重复触发显示窗口
+        if (element.textContent != "siyuan-plugin-fold-list-preview") {
+            const blockId = element.parentElement.getAttribute('data-node-id');
+            this.showPreviewList(blockId, event);
+            this.eventBus.once('loaded-protyle', () => {
+                //todo: 有时候悬浮窗打开太慢了，触发不及时会报错，暂时没找到解决方案
+                openListInFloating(element)
+            })
         }
     }
 
-    listener(event: Event) {
-        let element = event.target as Element;
-        // 编辑器加载完后，展开折叠的列表块
-        this.eventBus.once('loaded-protyle', () => {
-            setTimeout(() => { 
-                openListInFloating(element) 
-            }, 100);
-        });
+    showPreviewList(blockId: BlockId, event: MouseEvent) {
+        // 通过悬浮窗预览
+        event.stopPropagation();
+        const floatLayerInfo = getFloatLayerInfo();
+        const dataOids = floatLayerInfo.dataOids;
+        const options = {
+            ids: [blockId], 
+            x: event.clientX, 
+            y: event.clientY,  
+        }
+        // 不重复预览相同列表
+        if (dataOids.indexOf(blockId) == -1) { this.addFloatLayer(options) }
     }
 }
