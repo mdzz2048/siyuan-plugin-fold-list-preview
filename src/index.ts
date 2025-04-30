@@ -19,7 +19,7 @@ function handleMouseMove(event: MouseEvent) {
   
     // 计算伪元素的左上角相对于父元素的位置
     const pseudoLeft = rect.width - pseudoWidth
-    const pseudoTop = rect.height - pseudoHeight
+    const pseudoTop = (rect.height - pseudoHeight) / 2
   
     // 获取鼠标相对于父元素的位置
     const mouseX = event.clientX - rect.left
