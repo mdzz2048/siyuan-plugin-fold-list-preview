@@ -1,107 +1,140 @@
-import { Plugin } from "siyuan";
+import { Plugin } from "siyuan"
 import { 
     addEvent, 
     removeEvent, 
-    createTriggerBlock, 
     getFloatLayerInfo,
-    openListInFloating,
-    getFoldList,
-    getPreviewList,
-    removeTriggerBlock
-} from "./utils";
+    getParagraphInFoldList,
+} from "./utils"
 
-const STORAGE_NAME = "menu-config";
+let plugin: PreviewList
+const throttledHandler = throttle(handleMouseMove, 100) // 100ms 节流
 
-export default class PluginSample extends Plugin {
+// 原始处理函数（判断坐标并触发弹窗）
+function handleMouseMove(event: MouseEvent) {
+    
+    const rect = this.getBoundingClientRect() // 父元素的位置和尺寸
+    const style = getComputedStyle(this) // 获取父元素的样式
+    const pseudoWidth = parseFloat(style.getPropertyValue("--pseudo-width"))
+    const pseudoHeight = parseFloat(style.getPropertyValue("--pseudo-height"))
+  
+    // 计算伪元素的左上角相对于父元素的位置
+    const pseudoLeft = rect.width - pseudoWidth
+    const pseudoTop = rect.height - pseudoHeight
+  
+    // 获取鼠标相对于父元素的位置
+    const mouseX = event.clientX - rect.left
+    const mouseY = event.clientY - rect.top
+  
+    // 判断鼠标是否在伪元素区域内
+    const isInside = (
+        mouseX >= pseudoLeft &&
+        mouseX <= pseudoLeft + pseudoWidth &&
+        mouseY >= pseudoTop &&
+        mouseY <= pseudoTop + pseudoHeight
+    )
+  
+    if (isInside) {
+        // console.log("鼠标在伪元素上，触发弹窗！")
+        const paragraph = (event.target as Element).parentElement
+        const blockId = paragraph.parentElement.getAttribute("data-node-id")
+        openFloatLayer(blockId, event)
+    } else {
+        // console.log("鼠标离开伪元素区域")
+    }
+}
 
-    Listener = this.listener.bind(this);
+function throttle(func: { (event: MouseEvent): void; apply?: any }, wait: number) {
+    let canRun = true // 节流开关
+    return function (...args: any) {
+        if (!canRun) return
+        canRun = false
+        setTimeout(() => {
+            func.apply(this, args)
+            canRun = true // 重置开关
+        }, wait)
+    }
+}
+
+function openFloatLayer(blockId: string, event: MouseEvent) {
+    event.stopPropagation()
+    const floatLayerInfo = getFloatLayerInfo()
+    const dataOids = floatLayerInfo.dataOids
+    const options = {
+        ids: [blockId], 
+        x: event.clientX, 
+        y: event.clientY,  
+    }
+    // 不重复预览相同列表
+    if (dataOids.indexOf(blockId) == -1) { plugin.addFloatLayer(options) }
+    // 展开浮窗内折叠列表
+    plugin.eventBus.once("loaded-protyle-static", () => {
+        const paragraph = (event.target as Element).parentElement
+        const previewID = paragraph.parentElement.getAttribute("data-node-id")
+        const floatLayerInfo = getFloatLayerInfo()
+        const previewElement = floatLayerInfo?.lastFloatLayer?.querySelector(`[data-node-id="${previewID}"]`)
+        if (previewElement != null) {
+            const isFold = previewElement.getAttribute("fold")
+            if (isFold === "1") previewElement.setAttribute("fold", "0")
+        } else {
+            console.log(floatLayerInfo)
+            console.log(previewID)
+        }
+    })
+}
+
+function usePlugin(pluginProps?: PreviewList) {
+    if (pluginProps) plugin = pluginProps
+    if (!plugin && !pluginProps) console.log("need bind plugin")
+    return plugin
+}
+
+export default class PreviewList extends Plugin {
 
     async onload() {
-        this.eventBus.once('loaded-protyle', () => {
-            this.addListHoverListener();
+        this.eventBus.once("loaded-protyle-static", () => {
+            this.addListHoverListener()
         })
-        this.eventBus.on('loaded-protyle-dynamic', () => {
-            this.addListHoverListener();
+        this.eventBus.on("loaded-protyle-dynamic", () => {
+            this.addListHoverListener()
         })
-        this.eventBus.on('click-editorcontent', () => {
-            this.addListHoverListener();
+        this.eventBus.on("click-editorcontent", () => {
+            this.addListHoverListener()
         })
-    }
-
-    onLayoutReady() {
-        this.loadData(STORAGE_NAME);
+        plugin = usePlugin(this)
     }
     
     onunload() {
-        this.eventBus.once('loaded-protyle', () => {
-            this.removeListHoverListener();
+        this.eventBus.once("loaded-protyle-static", () => {
+            this.removeListHoverListener()
         })
-        this.eventBus.on('loaded-protyle-dynamic', () => {
-            this.removeListHoverListener();
+        this.eventBus.on("loaded-protyle-dynamic", () => {
+            this.removeListHoverListener()
         })
-        this.eventBus.on('click-editorcontent', () => {
-            this.removeListHoverListener();
+        this.eventBus.on("click-editorcontent", () => {
+            this.removeListHoverListener()
         })
-        console.log(this.i18n.byePlugin);
+        console.log(this.i18n.byePlugin)
     }
     
     addListHoverListener() {
-        const foldLists = getFoldList();
-        const previewLists = getPreviewList();
-        
-        // 更新触发块: 列表展开后，清除事件和触发块
-        previewLists.forEach((element) => {
-            const isFold = element.getAttribute('fold');
-            removeTriggerBlock(element, isFold === null || isFold === '0');
-        })
-        // 注册监听事件
+        const foldLists = getParagraphInFoldList()
         foldLists.forEach((element) => {
-            const triggerBlock = createTriggerBlock(element);
-            addEvent(triggerBlock, 'mouseenter', this.Listener);
-            addEvent(triggerBlock, 'click', this.Listener);
+            // 注册监听事件
+            addEvent(element.firstElementChild, "mousemove", throttledHandler)
+            addEvent(element.firstElementChild, "click", throttledHandler)
+            // 设置标记属性，用于后续检查折叠状态
+            element.parentElement.setAttribute("preview-list", "true")
         })
     }
 
     removeListHoverListener() {
-        const foldLists = getFoldList();
-        const previewLists = getPreviewList();
-        
-        // 移除所有触发块
-        previewLists.forEach((element) => {
-            removeTriggerBlock(element, true);
-        })
-        // 移除所有监听事件
+        const foldLists = getParagraphInFoldList()
         foldLists.forEach((element) => {
-            const triggerBlock = createTriggerBlock(element);
-            removeEvent(triggerBlock, 'mouseenter', this.Listener);
-            removeEvent(triggerBlock, 'click', this.Listener);
+            // 移除所有监听事件
+            removeEvent(element.firstElementChild, "mousemove", throttledHandler)
+            removeEvent(element.firstElementChild, "click", throttledHandler)
+            // 移除所有标记属性
+            element.parentElement.removeAttribute("preview-list")
         })
-    }
-
-    listener(event: MouseEvent) {
-        let element = event.target as Element;
-        // 加载 protyle 窗口不重复触发显示窗口
-        if (element.textContent != "siyuan-plugin-fold-list-preview") {
-            const blockId = element.parentElement.getAttribute('data-node-id');
-            this.showPreviewList(blockId, event);
-            this.eventBus.once('loaded-protyle', () => {
-                //todo: 有时候悬浮窗打开太慢了，触发不及时会报错，暂时没找到解决方案
-                openListInFloating(element)
-            })
-        }
-    }
-
-    showPreviewList(blockId: BlockId, event: MouseEvent) {
-        // 通过悬浮窗预览
-        event.stopPropagation();
-        const floatLayerInfo = getFloatLayerInfo();
-        const dataOids = floatLayerInfo.dataOids;
-        const options = {
-            ids: [blockId], 
-            x: event.clientX, 
-            y: event.clientY,  
-        }
-        // 不重复预览相同列表
-        if (dataOids.indexOf(blockId) == -1) { this.addFloatLayer(options) }
     }
 }

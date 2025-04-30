@@ -1,11 +1,20 @@
+.protyle-wysiwyg [data-node-id].li[fold="1"]>.p>[spellcheck]:not(.fn__flex-1.history__text.protyle  [data-node-id].li[fold="1"]>.p>[spellcheck]) {
+    position: relative;
+    --pseudo-width: 50px; /* 伪元素宽度 */
+    --pseudo-height: 20px; /* 伪元素高度 */
+    display: flex;
+    align-items: center;
+}
+
 .protyle-wysiwyg [data-node-id].li[fold="1"]>.p>[spellcheck]:not(.fn__flex-1.history__text.protyle  [data-node-id].li[fold="1"]>.p>[spellcheck])::after {
     content: "  · · ·  ";
-    display: inline;
     font-size: 65%;
     border: 1px solid rgb(95, 99, 104);
-    margin-left: 5px;
     border-radius: 5px;
     vertical-align: middle;
+
+    position: absolute;
+    right: 0;
 }
 
 .protyle-wysiwyg [data-node-id] > [trigger-block] {
