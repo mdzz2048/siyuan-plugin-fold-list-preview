@@ -1,6 +1,6 @@
 /**
- * 获取所有折叠列表元素，用于创建触发块
- * @returns 折叠列表集合
+ * 获取所有折叠列表的段落块
+ * @returns 折叠列表段落块集合
  */
 export function getParagraphInFoldList(): NodeListOf<Element> {
     const FOLD_LIST_SELECTOR = ".protyle-wysiwyg [data-node-id][fold='1'].li > .p"

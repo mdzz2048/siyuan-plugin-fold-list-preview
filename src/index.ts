@@ -34,10 +34,11 @@ function handleMouseMove(event: MouseEvent) {
     )
   
     if (isInside) {
-        // console.log("鼠标在伪元素上，触发弹窗！")
+        // console.log("鼠标在伪元素上，触发弹窗！", event.target)
         const paragraph = (event.target as Element).parentElement
         const blockId = paragraph.parentElement.getAttribute("data-node-id")
-        openFloatLayer(blockId, event)
+        event.stopPropagation()
+        openFloatLayer(blockId, event.clientX, event.clientY, paragraph)
     } else {
         // console.log("鼠标离开伪元素区域")
     }
@@ -55,21 +56,19 @@ function throttle(func: { (event: MouseEvent): void; apply?: any }, wait: number
     }
 }
 
-function openFloatLayer(blockId: string, event: MouseEvent) {
-    event.stopPropagation()
+function openFloatLayer(blockId: string, mouseX: number, mouseY: number, ele: HTMLElement) {
     const floatLayerInfo = getFloatLayerInfo()
     const dataOids = floatLayerInfo.dataOids
-    const options = {
-        ids: [blockId], 
-        x: event.clientX, 
-        y: event.clientY,  
-    }
     // 不重复预览相同列表
-    if (dataOids.indexOf(blockId) == -1) { plugin.addFloatLayer(options) }
+    if (dataOids.indexOf(blockId) == -1) { plugin.addFloatLayer({
+        refDefs: [{ refID: blockId, defIDs: [] }],
+        x: mouseX,
+        y: mouseY,
+        isBacklink: false
+    }) }
     // 展开浮窗内折叠列表
     plugin.eventBus.once("loaded-protyle-static", () => {
-        const paragraph = (event.target as Element).parentElement
-        const previewID = paragraph.parentElement.getAttribute("data-node-id")
+        const previewID = ele.parentElement.getAttribute("data-node-id")
         const floatLayerInfo = getFloatLayerInfo()
         const previewElement = floatLayerInfo?.lastFloatLayer?.querySelector(`[data-node-id="${previewID}"]`)
         if (previewElement != null) {
@@ -118,23 +117,23 @@ export default class PreviewList extends Plugin {
     
     addListHoverListener() {
         const foldLists = getParagraphInFoldList()
-        foldLists.forEach((element) => {
+        foldLists.forEach((paragraph) => {
             // 注册监听事件
-            addEvent(element.firstElementChild, "mousemove", throttledHandler)
-            addEvent(element.firstElementChild, "click", throttledHandler)
+            addEvent(paragraph.firstElementChild, "mousemove", throttledHandler)
+            addEvent(paragraph.firstElementChild, "click", throttledHandler)
             // 设置标记属性，用于后续检查折叠状态
-            element.parentElement.setAttribute("preview-list", "true")
+            paragraph.parentElement.setAttribute("preview-list", "true")
         })
     }
 
     removeListHoverListener() {
         const foldLists = getParagraphInFoldList()
-        foldLists.forEach((element) => {
+        foldLists.forEach((paragraph) => {
             // 移除所有监听事件
-            removeEvent(element.firstElementChild, "mousemove", throttledHandler)
-            removeEvent(element.firstElementChild, "click", throttledHandler)
+            removeEvent(paragraph.firstElementChild, "mousemove", throttledHandler)
+            removeEvent(paragraph.firstElementChild, "click", throttledHandler)
             // 移除所有标记属性
-            element.parentElement.removeAttribute("preview-list")
+            paragraph.parentElement.removeAttribute("preview-list")
         })
     }
 }
