@@ -3,7 +3,7 @@ import {
     addEvent, 
     removeEvent, 
     getFloatLayerInfo,
-    getParagraphInFoldList,
+    getFoldList,
 } from "./utils"
 
 let plugin: PreviewList
@@ -116,24 +116,28 @@ export default class PreviewList extends Plugin {
     }
     
     addListHoverListener() {
-        const foldLists = getParagraphInFoldList()
-        foldLists.forEach((paragraph) => {
+        const foldLists = getFoldList()
+        foldLists.forEach((element) => {
+            // 设置标记属性，用于检查折叠状态、监听器是否添加
+            const isPreviewList = element.getAttribute("preview-list")
+            if (isPreviewList) return
+            element.setAttribute("preview-list", "true")
             // 注册监听事件
-            addEvent(paragraph.firstElementChild, "mousemove", throttledHandler)
-            addEvent(paragraph.firstElementChild, "click", throttledHandler)
-            // 设置标记属性，用于后续检查折叠状态
-            paragraph.parentElement.setAttribute("preview-list", "true")
+            const firstBlock = element.firstElementChild.nextElementSibling
+            addEvent(firstBlock.firstElementChild, "mousemove", throttledHandler)
+            addEvent(firstBlock.firstElementChild, "click", throttledHandler)
         })
     }
 
     removeListHoverListener() {
-        const foldLists = getParagraphInFoldList()
-        foldLists.forEach((paragraph) => {
-            // 移除所有监听事件
-            removeEvent(paragraph.firstElementChild, "mousemove", throttledHandler)
-            removeEvent(paragraph.firstElementChild, "click", throttledHandler)
+        const foldLists = getFoldList()
+        foldLists.forEach((element) => {
             // 移除所有标记属性
-            paragraph.parentElement.removeAttribute("preview-list")
+            element.removeAttribute("preview-list")
+            // 移除所有监听事件
+            const firstBlock = element.firstElementChild.nextElementSibling
+            removeEvent(firstBlock.firstElementChild, "mousemove", throttledHandler)
+            removeEvent(firstBlock.firstElementChild, "click", throttledHandler)
         })
     }
 }

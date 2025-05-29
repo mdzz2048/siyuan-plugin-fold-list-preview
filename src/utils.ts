@@ -1,9 +1,9 @@
 /**
- * 获取所有折叠列表的段落块
- * @returns 折叠列表段落块集合
+ * 获取所有折叠列表
+ * @returns 折叠列表段落集合
  */
-export function getParagraphInFoldList(): NodeListOf<Element> {
-    const FOLD_LIST_SELECTOR = ".protyle-wysiwyg [data-node-id][fold='1'].li > .p"
+export function getFoldList(): NodeListOf<Element> {
+    const FOLD_LIST_SELECTOR = ".protyle-wysiwyg [data-node-id][fold='1'].li"
     return document.querySelectorAll(FOLD_LIST_SELECTOR)
 }
 

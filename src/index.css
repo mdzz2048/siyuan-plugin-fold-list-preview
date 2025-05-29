@@ -1,4 +1,4 @@
-.protyle-wysiwyg [data-node-id].li[fold="1"]>.p>[spellcheck]:not(.fn__flex-1.history__text.protyle  [data-node-id].li[fold="1"]>.p>[spellcheck]) {
+.protyle-wysiwyg [data-node-id].li[fold="1"]>[data-node-id]>[spellcheck]:not(.fn__flex-1.history__text.protyle  [data-node-id].li[fold="1"]>[data-node-id]>[spellcheck]) {
     position: relative;
     --pseudo-width: 50px; /* 伪元素宽度 */
     --pseudo-height: 20px; /* 伪元素高度 */
@@ -6,7 +6,7 @@
     align-items: center;
 }
 
-.protyle-wysiwyg [data-node-id].li[fold="1"]>.p>[spellcheck]:not(.fn__flex-1.history__text.protyle  [data-node-id].li[fold="1"]>.p>[spellcheck])::after {
+.protyle-wysiwyg [data-node-id].li[fold="1"]>[data-node-id]>[spellcheck]:not(.fn__flex-1.history__text.protyle  [data-node-id].li[fold="1"]>[data-node-id]>[spellcheck])::after {
     content: "  · · ·  ";
     font-size: 60%;
     border: 1px solid rgb(95, 99, 104);
