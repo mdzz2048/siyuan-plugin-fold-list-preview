@@ -1,10 +1,32 @@
 /**
- * 获取所有折叠列表
- * @returns 折叠列表段落集合
+ * 获取所有折叠块
+ * @returns 折叠块集合
  */
-export function getFoldList(): NodeListOf<Element> {
-    const FOLD_LIST_SELECTOR = ".protyle-wysiwyg [data-node-id][fold='1'].li"
+export function getFoldBlock(): NodeListOf<Element> {
+    const FOLD_LIST_SELECTOR = ".protyle-wysiwyg [data-node-id][fold='1']"
     return document.querySelectorAll(FOLD_LIST_SELECTOR)
+}
+
+
+export function getTargetElement(element: Element): Element {
+    const blockType = element.getAttribute("data-type")
+    switch (blockType) {
+        case "NodeListItem":
+            const firstBlock = element.firstElementChild.nextElementSibling
+            return firstBlock.firstElementChild
+        // case "NodeHeading":
+        //     return element
+    }
+}
+
+export function getBlockIdFromTargetElement(element: Element): string {
+    const blockType = element.getAttribute("target-data-type")
+    switch (blockType) {
+        case "NodeListItem":
+            return element.parentElement.parentElement.getAttribute("data-node-id")
+        // case "NodeHeading":
+        //     return element.getAttribute("data-node-id")
+    }
 }
 
 type FloatLayerInfo = {
